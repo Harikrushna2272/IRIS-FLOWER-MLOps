@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  db:
+    build:
+      context: ./db
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./db/data:/app/data
+    container_name: db_service
+
+  api:
+    build:
+      context: ./api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_SERVICE_URL=http://db:8001
+    container_name: api_service

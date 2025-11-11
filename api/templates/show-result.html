@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Predictions - Iris Flower</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 40px auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 1em; }
+        .nav-links { text-align: center; margin-bottom: 2em; }
+        .nav-links a { color: #007bff; text-decoration: none; margin: 0 1em; padding: 0.5em 1em; border: 1px solid #007bff; border-radius: 4px; }
+        .nav-links a:hover { background: #007bff; color: #fff; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        th, td { padding: 0.8em; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; color: #333; }
+        tr:hover { background: #f8f9fa; }
+        .no-data { text-align: center; color: #666; font-style: italic; padding: 2em; }
+        .prediction-class { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Previous Predictions</h2>
+        
+        <div class="nav-links">
+            <a href="/">Make New Prediction</a>
+        </div>
+
+        {% if records %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Sepal Length</th>
+                    <th>Sepal Width</th>
+                    <th>Petal Length</th>
+                    <th>Petal Width</th>
+                    <th>Predicted Class</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.id }}</td>
+                    <td>{{ record.sepal_length }}</td>
+                    <td>{{ record.sepal_width }}</td>
+                    <td>{{ record.petal_length }}</td>
+                    <td>{{ record.petal_width }}</td>
+                    <td class="prediction-class">{{ record.predicted_class }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            No predictions found. <a href="/">Make your first prediction!</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

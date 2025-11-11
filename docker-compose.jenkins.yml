@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/home/project
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    container_name: jenkins_server
+    networks:
+      - jenkins_network
+
+  docker:
+    image: docker:dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    volumes:
+      - jenkins_docker_certs:/certs/client
+      - jenkins_home:/var/jenkins_home
+    networks:
+      - jenkins_network
+    command: --storage-driver=overlay2
+
+volumes:
+  jenkins_home:
+  jenkins_docker_certs:
+
+networks:
+  jenkins_network:
+    driver: bridge

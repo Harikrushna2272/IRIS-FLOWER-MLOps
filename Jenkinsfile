@@ -1,0 +1,139 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        PROJECT_NAME = 'trial-mlops'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code from repository...'
+                checkout scm
+            }
+        }
+
+        stage('Environment Setup') {
+            steps {
+                echo 'Setting up environment...'
+                sh '''
+                    echo "Python version:"
+                    python3 --version
+                    echo "Docker version:"
+                    docker --version
+                    echo "Docker Compose version:"
+                    docker-compose --version
+                '''
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                echo 'Building Docker images...'
+                sh '''
+                    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                script {
+                    // Test API service
+                    dir('api') {
+                        sh '''
+                            if [ -f "test_main.py" ]; then
+                                echo "Running API tests..."
+                                docker run --rm -v $(pwd):/api -w /api \
+                                    ghcr.io/astral-sh/uv:python3.11-bookworm-slim \
+                                    sh -c "uv pip install pytest pytest-asyncio httpx && uv run pytest test_main.py -v"
+                            else
+                                echo "No tests found for API service, skipping..."
+                            fi
+                        '''
+                    }
+
+                    // Test DB service
+                    dir('db') {
+                        sh '''
+                            if [ -f "test_main.py" ]; then
+                                echo "Running DB tests..."
+                                docker run --rm -v $(pwd):/app -w /app \
+                                    ghcr.io/astral-sh/uv:python3.11-bookworm-slim \
+                                    sh -c "uv pip install pytest pytest-asyncio httpx && uv run pytest test_main.py -v"
+                            else
+                                echo "No tests found for DB service, skipping..."
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Stop Existing Containers') {
+            steps {
+                echo 'Stopping existing containers...'
+                sh '''
+                    docker-compose -f ${DOCKER_COMPOSE_FILE} down || true
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application...'
+                sh '''
+                    docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo 'Performing health checks...'
+                script {
+                    sleep 10  // Wait for services to start
+                    sh '''
+                        echo "Checking API service..."
+                        curl -f http://localhost:8000/ || exit 1
+
+                        echo "Checking DB service..."
+                        curl -f http://localhost:8001/ || exit 1
+
+                        echo "All services are healthy!"
+                    '''
+                }
+            }
+        }
+
+        stage('Cleanup Old Images') {
+            steps {
+                echo 'Cleaning up old Docker images...'
+                sh '''
+                    docker image prune -f
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline executed successfully!'
+            echo 'API Service: http://localhost:8000'
+            echo 'DB Service: http://localhost:8001'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
+            sh '''
+                docker-compose -f ${DOCKER_COMPOSE_FILE} logs
+                docker-compose -f ${DOCKER_COMPOSE_FILE} down
+            '''
+        }
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
+    }
+}
