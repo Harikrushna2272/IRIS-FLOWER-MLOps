@@ -1,6 +1,14 @@
 # MLOps Project - Iris Prediction with CI/CD
 
+[![GitHub](https://img.shields.io/badge/GitHub-IRIS--FLOWER--MLOps-blue?logo=github)](https://github.com/Harikrushna2272/IRIS-FLOWER-MLOps)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker)](https://www.docker.com/)
+[![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?logo=jenkins)](https://www.jenkins.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python)](https://www.python.org/)
+
 A complete MLOps project demonstrating microservices architecture, Docker containerization, and Jenkins CI/CD pipeline.
+
+**Repository**: [https://github.com/Harikrushna2272/IRIS-FLOWER-MLOps](https://github.com/Harikrushna2272/IRIS-FLOWER-MLOps)
 
 ## Project Overview
 
@@ -280,6 +288,8 @@ docker-compose -f docker-compose.jenkins.yml restart
 ## Documentation
 
 - [Jenkins Setup Guide](JENKINS_SETUP.md) - Complete CI/CD setup instructions
+- [GitHub + Jenkins Integration](GITHUB_JENKINS_INTEGRATION.md) - GitHub integration and webhook setup
+- [Quick Reference](QUICK_REFERENCE.md) - Command cheat sheet
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Docker Documentation](https://docs.docker.com/)
 - [Jenkins Documentation](https://www.jenkins.io/doc/)

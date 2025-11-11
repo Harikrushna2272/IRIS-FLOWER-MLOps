@@ -3,13 +3,18 @@ pipeline {
 
     environment {
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
-        PROJECT_NAME = 'trial-mlops'
+        PROJECT_NAME = 'iris-flower-mlops'
+        GITHUB_REPO = 'https://github.com/Harikrushna2272/IRIS-FLOWER-MLOps.git'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out code from repository...'
+                echo '================================'
+                echo 'Checking out code from repository'
+                echo "Repository: ${GITHUB_REPO}"
+                echo "Branch: ${env.BRANCH_NAME ?: 'main'}"
+                echo '================================'
                 checkout scm
             }
         }
@@ -120,20 +125,35 @@ pipeline {
 
     post {
         success {
+            echo '================================'
             echo '✅ Pipeline executed successfully!'
+            echo '================================'
+            echo "Build: ${env.BUILD_NUMBER}"
+            echo "Commit: ${env.GIT_COMMIT?.take(7)}"
+            echo "Branch: ${env.BRANCH_NAME ?: 'main'}"
+            echo '================================'
             echo 'API Service: http://localhost:8000'
             echo 'DB Service: http://localhost:8001'
+            echo '================================'
         }
         failure {
+            echo '================================'
             echo '❌ Pipeline failed!'
+            echo '================================'
+            echo "Build: ${env.BUILD_NUMBER}"
+            echo "Commit: ${env.GIT_COMMIT?.take(7)}"
+            echo "Branch: ${env.BRANCH_NAME ?: 'main'}"
+            echo '================================'
             sh '''
-                docker-compose -f ${DOCKER_COMPOSE_FILE} logs
+                echo "Displaying logs for debugging..."
+                docker-compose -f ${DOCKER_COMPOSE_FILE} logs --tail=50
                 docker-compose -f ${DOCKER_COMPOSE_FILE} down
             '''
         }
         always {
             echo 'Cleaning up workspace...'
-            cleanWs()
+            // Comment out cleanWs() to keep workspace for debugging
+            // cleanWs()
         }
     }
 }
