@@ -15,7 +15,24 @@ pipeline {
                 echo "Repository: ${GITHUB_REPO}"
                 echo "Branch: ${env.BRANCH_NAME ?: 'main'}"
                 echo '================================'
-                checkout scm
+                script {
+                    try {
+                        // Try to use SCM if configured (when using "Pipeline script from SCM")
+                        checkout scm
+                    } catch (Exception e) {
+                        // If SCM not configured (Direct Pipeline Script), clone from GitHub
+                        echo "SCM not configured, cloning from GitHub..."
+                        sh """
+                            if [ -d ".git" ]; then
+                                echo "Repository already exists, pulling latest changes..."
+                                git pull origin main || echo "Pull failed, continuing with existing code..."
+                            else
+                                echo "Cloning repository..."
+                                git clone ${GITHUB_REPO} . || echo "Clone failed, using workspace as-is..."
+                            fi
+                        """
+                    }
+                }
             }
         }
 
