@@ -70,7 +70,7 @@ pipeline {
                                 echo "Running API tests..."
                                 docker run --rm -v $(pwd):/api -w /api \
                                     ghcr.io/astral-sh/uv:python3.11-bookworm-slim \
-                                    sh -c "uv pip install pytest pytest-asyncio httpx && uv run pytest test_main.py -v"
+                                    sh -c "uv pip install --system pytest pytest-asyncio httpx && uv run --no-project pytest test_main.py -v"
                             else
                                 echo "No tests found for API service, skipping..."
                             fi
@@ -84,7 +84,7 @@ pipeline {
                                 echo "Running DB tests..."
                                 docker run --rm -v $(pwd):/app -w /app \
                                     ghcr.io/astral-sh/uv:python3.11-bookworm-slim \
-                                    sh -c "uv pip install pytest pytest-asyncio httpx && uv run pytest test_main.py -v"
+                                    sh -c "uv pip install --system pytest pytest-asyncio httpx && uv run --no-project pytest test_main.py -v"
                             else
                                 echo "No tests found for DB service, skipping..."
                             fi
