@@ -89,7 +89,7 @@ pipeline {
             steps {
                 echo 'Performing health checks...'
                 script {
-                    sleep 10  // Wait for services to start
+                    sleep 60  // Wait for services to start and download dependencies
                     sh '''
                         echo "Checking API service..."
                         curl -f http://localhost:8000/ || exit 1
