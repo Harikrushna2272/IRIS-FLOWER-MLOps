@@ -91,11 +91,14 @@ pipeline {
                 script {
                     sleep 60  // Wait for services to start and download dependencies
                     sh '''
+                        echo "Checking if containers are running..."
+                        docker ps | grep -E "api_service|db_service"
+
                         echo "Checking API service..."
-                        curl -f http://localhost:8000/ || exit 1
+                        docker exec api_service curl -f http://localhost:8000/ || exit 1
 
                         echo "Checking DB service..."
-                        curl -f http://localhost:8001/ || exit 1
+                        docker exec db_service curl -f http://localhost:8001/ || exit 1
 
                         echo "All services are healthy!"
                     '''
