@@ -37,7 +37,7 @@ pipeline {
             steps {
                 echo 'Building Docker images...'
                 sh '''
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache
+                    docker compose -f ${DOCKER_COMPOSE_FILE} build --no-cache
                 '''
             }
         }
@@ -81,7 +81,7 @@ pipeline {
             steps {
                 echo 'Stopping existing containers...'
                 sh '''
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} down || true
+                    docker compose -f ${DOCKER_COMPOSE_FILE} down || true
                 '''
             }
         }
@@ -90,7 +90,7 @@ pipeline {
             steps {
                 echo 'Deploying application...'
                 sh '''
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                    docker compose -f ${DOCKER_COMPOSE_FILE} up -d
                 '''
             }
         }
@@ -146,8 +146,8 @@ pipeline {
             echo '================================'
             sh '''
                 echo "Displaying logs for debugging..."
-                docker-compose -f ${DOCKER_COMPOSE_FILE} logs --tail=50
-                docker-compose -f ${DOCKER_COMPOSE_FILE} down
+                docker compose -f ${DOCKER_COMPOSE_FILE} logs --tail=50
+                docker compose -f ${DOCKER_COMPOSE_FILE} down
             '''
         }
         always {
