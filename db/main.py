@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from prometheus_client import Counter, generate_latest
 from tortoise import fields
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise.models import Model
@@ -18,6 +20,13 @@ class Prediction(Model):
 load_dotenv()
 app = FastAPI()
 
+# Prometheus metrics
+DB_REQUESTS = Counter("db_requests_total", "Total DB requests")
+PREDICTIONS_SAVED = Counter("predictions_saved_total", "Total predictions saved")
+PREDICTIONS_RETRIEVED = Counter(
+    "predictions_retrieved_total", "Total predictions retrieved"
+)
+
 register_tortoise(
     app,
     db_url="sqlite://data/db.sqlite3",
@@ -27,8 +36,14 @@ register_tortoise(
 )
 
 
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return generate_latest()
+
+
 @app.get("/")
 async def root():
+    DB_REQUESTS.inc()
     return {"message": "Hello from DB"}
 
 
@@ -47,6 +62,8 @@ class PredictionIn(BaseModel):
 
 @app.post("/prediction")
 async def create_prediction(prediction: PredictionIn):
+    DB_REQUESTS.inc()
+    PREDICTIONS_SAVED.inc()
     return await Prediction.create(**prediction.dict())
 
 
@@ -64,5 +81,7 @@ async def create_prediction(prediction: PredictionIn):
 
 @app.get("/prediction")
 async def get_predictions():
+    DB_REQUESTS.inc()
+    PREDICTIONS_RETRIEVED.inc()
     predictions = await Prediction.all()
     return predictions
