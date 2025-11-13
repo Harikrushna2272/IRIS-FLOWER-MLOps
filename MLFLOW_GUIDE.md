@@ -59,7 +59,7 @@ services:
     image: ghcr.io/mlflow/mlflow:v2.9.2
     container_name: mlflow
     ports:
-      - "5000:5000"
+      - "5001:5000"  # External:Internal (5001 on host, 5000 in container)
     volumes:
       - mlflow_data:/mlflow
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
@@ -70,7 +70,7 @@ services:
     depends_on:
       - mlflow
     environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_TRACKING_URI=http://mlflow:5000  # Internal network uses port 5000
 
 volumes:
   mlflow_data:
@@ -93,7 +93,7 @@ import mlflow.sklearn
 import os
 
 # Get MLflow tracking URI from environment
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5001")
 
 # Configure MLflow
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -145,7 +145,9 @@ async def predict(sepal_length, sepal_width, petal_length, petal_width):
 
 ### Access MLflow
 
-Open your browser and go to: **http://localhost:5000**
+Open your browser and go to: **http://localhost:5001**
+
+**Note:** MLflow uses port 5001 instead of 5000 because macOS Control Center uses port 5000 by default.
 
 ### View Experiments
 
@@ -320,13 +322,13 @@ MLflow complements monitoring tools:
 
 ```bash
 # Get all experiments
-curl http://localhost:5000/api/2.0/mlflow/experiments/list
+curl http://localhost:5001/api/2.0/mlflow/experiments/list
 
 # Get runs for an experiment
-curl http://localhost:5000/api/2.0/mlflow/runs/search -d '{"experiment_ids": ["1"]}'
+curl http://localhost:5001/api/2.0/mlflow/runs/search -d '{"experiment_ids": ["1"]}'
 
 # Get run details
-curl http://localhost:5000/api/2.0/mlflow/runs/get?run_id={run_id}
+curl http://localhost:5001/api/2.0/mlflow/runs/get?run_id={run_id}
 ```
 
 ---
@@ -381,7 +383,7 @@ docker compose up -d
 docker logs -f mlflow
 
 # Access MLflow UI
-open http://localhost:5000
+open http://localhost:5001
 
 # Generate test predictions
 for i in {1..10}; do
@@ -414,4 +416,4 @@ docker exec mlflow ls -lh /mlflow/mlflow.db
 - Regulatory compliance (audit trail)
 - Team collaboration
 
-**Access MLflow at:** http://localhost:5000
+**Access MLflow at:** http://localhost:5001
