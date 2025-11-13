@@ -1,6 +1,7 @@
 from imp import reload
 import os
 import pickle
+import time
 
 from pydantic.v1.tools import T
 
@@ -11,6 +12,8 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import mlflow
+import mlflow.sklearn
 
 iris_classes = {0: "Setosa", 1: "Versicolor", 2: "Virginica"}
 
@@ -22,6 +25,11 @@ PREDICTION_TIME = Histogram("prediction_duration_seconds", "Prediction processin
 load_dotenv()
 
 DB_SERVICE_URL = os.getenv("DATABASE_SERVICE_URL", "http://localhost:8001")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+
+# Configure MLflow
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment("iris-flower-prediction")
 
 app = FastAPI(reload=True)
 templates = Jinja2Templates(directory="templates")
@@ -82,6 +90,8 @@ async def predict(
     petal_length: float = Form(...),
     petal_width: float = Form(...),
 ):
+    start_time = time.time()
+
     with PREDICTION_TIME.time():
         PREDICTION_COUNT.inc()
         features = np.array(
@@ -90,6 +100,27 @@ async def predict(
         pred = model.predict(features)
         ans = pred[0]
         flower_name = iris_classes.get(ans, str(ans))
+
+    inference_time = time.time() - start_time
+
+    # Log to MLflow
+    with mlflow.start_run(run_name=f"prediction_{int(time.time())}"):
+        mlflow.log_params(
+            {
+                "sepal_length": sepal_length,
+                "sepal_width": sepal_width,
+                "petal_length": petal_length,
+                "petal_width": petal_width,
+            }
+        )
+        mlflow.log_metrics(
+            {
+                "prediction_class": int(ans),
+                "inference_time_ms": inference_time * 1000,
+            }
+        )
+        mlflow.set_tag("prediction", flower_name)
+        mlflow.set_tag("model_version", "v1.0")
 
     # Send prediction to DB microservice
     async with aiohttp.ClientSession() as session:

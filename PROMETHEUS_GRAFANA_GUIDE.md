@@ -60,7 +60,7 @@ version: "3.8"
 
 services:
   # Your existing services (api, db, etc.)
-  
+
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -106,11 +106,11 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-  
+
   - job_name: 'api_service'
     static_configs:
       - targets: ['api_service:8000']  # Your service name and port
-  
+
   - job_name: 'db_service'
     static_configs:
       - targets: ['db_service:8001']
@@ -296,7 +296,7 @@ docker compose down -v
 docker compose up -d
 
 # Generate test traffic
-for i in {1..50}; do 
+for i in {1..50}; do
   curl http://localhost:8000/
   sleep 1
 done
